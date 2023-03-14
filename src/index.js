@@ -152,6 +152,20 @@ app.get('/talker', async (req, res) => {
   res.status(200).json([]);
 });
 
+app.get('/talker/search', validationTokenMiddleware, async (req, res) => {
+  const searchTerm = req.query.q;
+  if (!searchTerm) {
+    const allRegisteredPersons = await readJsonData(talkerPath);
+    res.status(200).json(allRegisteredPersons);
+    return;
+  }
+
+  const registeredPersons = await readJsonData(talkerPath);
+  const filteredPersons = registeredPersons.filter((person) => person.name.includes(searchTerm));
+  
+  res.status(200).json(filteredPersons);
+});
+
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
 
