@@ -4,6 +4,8 @@ const fs = require('fs').promises;
 
 const crypto = require('crypto');
 
+const talkerPath = 'src/talker.json';
+
 const readJsonData = async (path) => {
     try {
         const data = await fs.readFile(path);
@@ -114,6 +116,17 @@ const validationRateMiddleware = (req, res, next) => {
   next();
 };
 
+const validationPersonMiddleware = async (req, res, next) => {
+  const { id } = req.params;
+  const registeredPersons = await readJsonData(talkerPath);
+
+  const registeredPersonById = registeredPersons.find((person) => person.id === Number(id));
+  if (typeof registeredPersonById === 'undefined') {
+    res.status(404).json({ message: 'Pessoa palestrante não encontrada' }); return;
+  }
+  next();
+};
+
 const app = express();
 app.use(express.json());
 
@@ -130,7 +143,7 @@ app.listen(PORT, () => {
 });
 
 app.get('/talker', async (req, res) => {
-  const allRegisteredPersons = await readJsonData('src/talker.json');
+  const allRegisteredPersons = await readJsonData(talkerPath);
   
   if (allRegisteredPersons) {
     res.status(200).json(allRegisteredPersons);
@@ -142,14 +155,14 @@ app.get('/talker', async (req, res) => {
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
 
-  const allRegisteredPersons = await readJsonData('src/talker.json');
+  const allRegisteredPersons = await readJsonData(talkerPath);
   const personOnId = allRegisteredPersons.find((person) => person.id === Number(id));
 
   if (personOnId) {
     res.status(200).json(personOnId);
     return;
   }
-  res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+  res.status(400).json({ message: 'Pessoa palestrante não encontrada' });
 });
 
 app.post('/login', validationLoginMiddleware, async (req, res) => {
@@ -161,9 +174,26 @@ app.post('/talker', validationTokenMiddleware,
  validationNameMiddleware, validationAgeMiddleware,
   validationTalkAndWatchedMiddleware, validationRateMiddleware, async (req, res) => {
   const newPerson = req.body;
-  const registeredPersons = await readJsonData('src/talker.json');
+  const registeredPersons = await readJsonData(talkerPath);
   newPerson.id = registeredPersons.length + 1;
   registeredPersons.push(newPerson);
-  await writeJsonData('src/talker.json', registeredPersons);
+  await writeJsonData(talkerPath, registeredPersons);
   res.status(201).json(newPerson);
+});
+
+app.put('/talker/:id', validationTokenMiddleware, validationNameMiddleware,
+validationAgeMiddleware, validationTalkAndWatchedMiddleware,
+validationRateMiddleware, validationPersonMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const updatePerson = req.body;
+  updatePerson.id = Number(id);
+
+  const registeredPersons = await readJsonData(talkerPath);
+  const registeredPersonByIdIndex = registeredPersons.findIndex((person) => 
+  person.id === Number(id));
+
+  registeredPersons[registeredPersonByIdIndex] = updatePerson;
+  await writeJsonData(talkerPath, registeredPersons);
+
+  res.status(200).json(updatePerson);
 });
