@@ -162,7 +162,7 @@ app.get('/talker/:id', async (req, res) => {
     res.status(200).json(personOnId);
     return;
   }
-  res.status(400).json({ message: 'Pessoa palestrante não encontrada' });
+  res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
 });
 
 app.post('/login', validationLoginMiddleware, async (req, res) => {
