@@ -197,3 +197,14 @@ validationRateMiddleware, validationPersonMiddleware, async (req, res) => {
 
   res.status(200).json(updatePerson);
 });
+
+app.delete('/talker/:id', validationTokenMiddleware, async (req, res) => {
+  const { id } = req.params;
+
+  const registeredPersons = await readJsonData(talkerPath);
+  const findPersonIndex = registeredPersons.findIndex((person) => person.id === Number(id));
+  registeredPersons.splice(findPersonIndex, 1);
+  await writeJsonData(talkerPath, registeredPersons);
+
+  res.status(204).end();
+});
