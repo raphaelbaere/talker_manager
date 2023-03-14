@@ -46,3 +46,16 @@ app.get('/talker', async (req, res) => {
   }
   res.status(200).json([]);
 });
+
+app.get('/talker/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const allRegisteredPersons = await readJsonData('src/talker.json');
+  const personOnId = allRegisteredPersons.find((person) => person.id === Number(id));
+
+  if (personOnId) {
+    res.status(200).json(personOnId);
+    return;
+  }
+  res.status(404).json({ message: 'Pessoa palestrante não encontrada'});
+})
