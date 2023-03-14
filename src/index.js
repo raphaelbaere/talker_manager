@@ -2,6 +2,8 @@ const express = require('express');
 
 const fs = require('fs').promises;
 
+const crypto = require('crypto');
+
 const readJsonData = async (path) => {
     try {
         const data = await fs.readFile(path);
@@ -11,16 +13,6 @@ const readJsonData = async (path) => {
         console.error(`Erro na escrita do arquivo: ${error}`);
     }
 };
-
-const writeJsonData = async (path, json) => {
-    try {
-      const JSONStringify = JSON.stringify(json);
-      await fs.writeFile(path, JSONStringify);
-      console.log('Arquivo escrito com sucesso!');
-    } catch (err) {
-      console.error(`Erro ao escrever o arquivo: ${err.message}`);
-    }
-  };
 
 const app = express();
 app.use(express.json());
@@ -57,5 +49,10 @@ app.get('/talker/:id', async (req, res) => {
     res.status(200).json(personOnId);
     return;
   }
-  res.status(404).json({ message: 'Pessoa palestrante não encontrada'});
-})
+  res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+});
+
+app.post('/login', async (req, res) => {
+  const token = crypto.randomBytes(8).toString('hex');
+  res.status(200).json({ token });
+});
