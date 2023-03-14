@@ -14,6 +14,27 @@ const readJsonData = async (path) => {
     }
 };
 
+const validateEmail = (email, regex) => regex.test(email);
+
+const validationMiddleware = (req, res, next) => {
+  const { email, password } = req.body;
+  const isEmailValid = validateEmail(email, /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
+  if (!email) {
+    res.status(400).json({ message: 'O campo "email" é obrigatório' }); return;
+  }
+  if (!isEmailValid) {
+    res.status(400).json({ message: 'O "email" deve ter o formato "email@email.com"' }); return;
+  }
+  if (!password) {
+    res.status(400).json({ message: 'O campo "password" é obrigatório' }); return;
+  }
+  const isPasswordValid = password.length >= 6;
+  if (!isPasswordValid) {
+    res.status(400).json({ message: 'O "password" deve ter pelo menos 6 caracteres' }); return;
+  }
+  next();
+};
+
 const app = express();
 app.use(express.json());
 
@@ -52,7 +73,7 @@ app.get('/talker/:id', async (req, res) => {
   res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', validationMiddleware, async (req, res) => {
   const token = crypto.randomBytes(8).toString('hex');
   res.status(200).json({ token });
 });
