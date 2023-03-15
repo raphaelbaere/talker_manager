@@ -90,6 +90,19 @@ const isEmailValid = validateWithRegex(email, /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+
     }
     next();
   };
+
+  const validationRateMiddlewareUpdate = (req, res, next) => {
+    const { rate } = req.body;
+    if (typeof rate === 'undefined') {
+      res.status(400).json({ message: 'O campo "rate" é obrigatório' }); return;
+    }
+    const isRateValid = Number.isInteger(rate) && rate >= 1 && rate <= 5;
+    if (!isRateValid) {
+      res.status(400).json({ message: 'O campo "rate" deve ser um número inteiro entre 1 e 5' });
+      return;
+    }
+    next();
+  };
   
   const validationPersonMiddleware = async (req, res, next) => {
     const { id } = req.params;
@@ -140,4 +153,5 @@ const isEmailValid = validateWithRegex(email, /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+
     validationTalkAndWatchedMiddleware,
     validationTokenMiddleware,
     validateQueryParamDate,
+    validationRateMiddlewareUpdate,
   };

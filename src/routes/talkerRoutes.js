@@ -8,7 +8,8 @@ const talkerPath = 'src/talker.json';
 
 const { validateQueryParamRate, validationTokenMiddleware, validationNameMiddleware,
 validationAgeMiddleware, validationPersonMiddleware, validationTalkAndWatchedMiddleware,
-validationRateMiddleware, validateQueryParamDate } = require('../middlewares');
+validationRateMiddleware, validateQueryParamDate,
+ validationRateMiddlewareUpdate } = require('../middlewares');
 
 const searchFilter = (talkers, searchTerm, searchRate, dateSearch) => {
     let newTalkers = talkers;
@@ -36,6 +37,19 @@ router.get('/', async (req, res) => {
       return;
     }
     res.status(200).json([]);
+  });
+
+  router.patch('/rate/:id', validationTokenMiddleware,
+   validationRateMiddlewareUpdate, async (req, res) => {
+    const { id } = req.params;
+    const { rate } = req.body;
+    const talkers = await readJsonData(talkerPath);
+
+    const findIndexTalkerById = talkers.findIndex((talker) => talker.id === Number(id));
+    talkers[findIndexTalkerById].talk.rate = rate;
+    await writeJsonData(talkerPath, talkers);
+
+    res.status(204).end();
   });
   
   router.get('/search', validationTokenMiddleware,
