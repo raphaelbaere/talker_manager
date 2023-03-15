@@ -8,9 +8,9 @@ const talkerPath = 'src/talker.json';
 
 const { validateQueryParamRate, validationTokenMiddleware, validationNameMiddleware,
 validationAgeMiddleware, validationPersonMiddleware, validationTalkAndWatchedMiddleware,
-validationRateMiddleware } = require('../middlewares');
+validationRateMiddleware, validateQueryParamDate } = require('../middlewares');
 
-const searchFilter = (talkers, searchTerm, searchRate) => {
+const searchFilter = (talkers, searchTerm, searchRate, dateSearch) => {
     let newTalkers = talkers;
   
     if (searchTerm) {
@@ -19,6 +19,10 @@ const searchFilter = (talkers, searchTerm, searchRate) => {
   
     if (searchRate) {
       newTalkers = newTalkers.filter((talker) => talker.talk.rate === Number(searchRate));
+    }
+
+    if (dateSearch) {
+        newTalkers = newTalkers.filter((talker) => talker.talk.watchedAt === dateSearch);
     }
   
     return newTalkers;
@@ -34,16 +38,17 @@ router.get('/', async (req, res) => {
     res.status(200).json([]);
   });
   
-  router.get('/search', validationTokenMiddleware, validateQueryParamRate, async (req, res) => {
-    const { q: searchTerm, rate: rateSearch } = req.query;
+  router.get('/search', validationTokenMiddleware,
+   validateQueryParamRate, validateQueryParamDate, async (req, res) => {
+    const { q: searchTerm, rate: rateSearch, date: dateSearch } = req.query;
     const allRegisteredPersons = await readJsonData(talkerPath);
   
-    if (!searchTerm && !rateSearch) {
+    if (!searchTerm && !rateSearch && !dateSearch) {
       res.status(200).json(allRegisteredPersons);
       return;
     }
   
-    const filteredPersons = searchFilter(allRegisteredPersons, searchTerm, rateSearch);
+    const filteredPersons = searchFilter(allRegisteredPersons, searchTerm, rateSearch, dateSearch);
     if (!filteredPersons) {
       res.status(200).json([]);
       return;

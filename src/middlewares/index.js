@@ -116,6 +116,20 @@ const isEmailValid = validateWithRegex(email, /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+
     next();
   };
 
+  const validateQueryParamDate = (req, res, next) => {
+    const { date } = req.query;
+    if (date) {
+        const validateWatchedAt = validateWithRegex(date, /^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (!validateWatchedAt) {
+            res.status(400).json(
+                { message: 'O parâmetro "date" deve ter o formato "dd/mm/aaaa"' },
+                );
+                return;
+        }
+    }
+    next();
+  };
+
   module.exports = {
     validateQueryParamRate,
     validationAgeMiddleware,
@@ -125,4 +139,5 @@ const isEmailValid = validateWithRegex(email, /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+
     validationRateMiddleware,
     validationTalkAndWatchedMiddleware,
     validationTokenMiddleware,
+    validateQueryParamDate,
   };
