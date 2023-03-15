@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
+const connection = require('../db/connection');
+
 const { readJsonData, writeJsonData } = require('../utils/fs/jsonHandlers');
 
 const talkerPath = 'src/talker.json';
@@ -37,6 +39,25 @@ router.get('/', async (req, res) => {
       return;
     }
     res.status(200).json([]);
+  });
+
+  router.get('/db', async (req, res) => {
+    const getTalkersFromDB = connection.execute('SELECT * FROM talkers');
+    const [result] = await getTalkersFromDB;
+
+    if (!result) return res.status(200).json([]);
+
+    const talkersMapped = result.map((r) => ({
+        id: r.id,
+        name: r.name,
+        age: r.age,
+        talk: {
+            watchedAt: r.talk_watched_at,
+            rate: r.talk_rate,
+        },
+    }));
+
+    res.status(200).json(talkersMapped);
   });
 
   router.patch('/rate/:id', validationTokenMiddleware,
